@@ -105,8 +105,6 @@ const LoginPage = () => {
                                onChange={(e) => setPass(e.target.value)}/>
                     </div>
                     <button onClick={handleLogin} className="btn btn-primary" type="button">ログイン</button>
-                    <button onClick={handleLogout} className="btn btn-primary" type="button">ログアウト</button>
-                    <button onClick={fetchUser} className="btn btn-primary" type="button">ユーザー</button>
                 </form>
                 {resMessages ? (
                     <p className="text-danger">{resMessages}</p>
