@@ -1,12 +1,35 @@
 "use client";
 
 import React, {useState, useEffect} from "react";
-import Link from "next/link";
 
 const LoginPage = () => {
     const [name, setName] = useState('');
     const [pass, setPass] = useState('');
     const [resMessages, setResMessages] = useState("")
+
+    const [user, setUser] = useState(null);
+    const fetchUser = async () => {
+        try {
+            const response = await fetch("http://localhost:3030/users",{
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials:"include",
+
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                setUser(data.user);
+                console.log(data)
+            } else {
+                setUser(null);
+                console.log(user)
+            }
+        } catch (error) {
+            console.error('Error fetching user:', error);
+        }
+    };
 
     const handleLogin = async () => {
         try {
@@ -15,6 +38,7 @@ const LoginPage = () => {
                 headers: {
                     "Content-Type": "application/json",
                 },
+                credentials:"include",
                 body: JSON.stringify({name: name, pass: pass}),
             });
 
@@ -28,7 +52,6 @@ const LoginPage = () => {
                 // ログイン失敗
                 console.error("ログイン失敗", response);
                 setResMessages("ログイン失敗しました")
-                setName("")
                 setPass("")
             }
         } catch (error) {
@@ -42,7 +65,7 @@ const LoginPage = () => {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
-                }
+                },
             });
 
             if (response.ok) {
@@ -64,8 +87,6 @@ const LoginPage = () => {
             setPass("")
         }
     };
-
-
     return (
         <>
             <div className="container">
@@ -85,6 +106,7 @@ const LoginPage = () => {
                     </div>
                     <button onClick={handleLogin} className="btn btn-primary" type="button">ログイン</button>
                     <button onClick={handleLogout} className="btn btn-primary" type="button">ログアウト</button>
+                    <button onClick={fetchUser} className="btn btn-primary" type="button">ユーザー</button>
                 </form>
                 {resMessages ? (
                     <p className="text-danger">{resMessages}</p>
@@ -93,6 +115,10 @@ const LoginPage = () => {
                 )}
                 <div className="mt-4">
                     <a href="./singnup">新規登録ページへ&gt;&gt;</a>
+
+                </div>
+                <div className="mt-4">
+                    <a href="./../boards">&lt;&lt;Topページへ</a>
                 </div>
             </div>
         </>
