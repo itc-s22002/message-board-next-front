@@ -8,6 +8,9 @@ const SingUpPage = () => {
     const [pass, setPass] = useState('');
     const [resMessages, setResMessages] = useState("")
 
+    /**
+     *新規登録処理
+     */
 
     const handleSignup = async () => {
         try {

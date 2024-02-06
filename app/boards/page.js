@@ -15,9 +15,12 @@ const BoardsPage = () => {
     const [resMessages, setResMessages] = useState("")
     const [userAll, setUserAll] = useState()
     const [boardDisplay, setBoardDisplay] = useState(false)
+
     const router = useRouter();
 
-    //現在ログインしているUser
+    /**
+     *ログイン中のユーザー確認
+     */
     const fetchUser = async () => {
         try {
             const response = await fetch("http://localhost:3030/users", {
@@ -40,7 +43,9 @@ const BoardsPage = () => {
         }
     };
 
-    //メッセージ一覧
+    /**
+     *メッセージ一覧
+     */
     const messageAll = async () => {
         try {
             const response = await fetch(`http://localhost:3030/messages/read${pageNumber}`, {
@@ -74,7 +79,9 @@ const BoardsPage = () => {
     useEffect(() => {
         fetchUser();
     })
-
+    /**
+     *ユーザー一覧
+     */
     useEffect(() => {
         const GetUserAll = async () => {
             try {
@@ -99,17 +106,23 @@ const BoardsPage = () => {
         GetUserAll()
     }, []);
 
-    //ページ遷移
+    /**
+     *ページ遷移
+     */
     const pageNext = () => {
         setPageNumber(pageNumber + 1)
         messageAll()
     }
-
     const pagePrev = () => {
         setPageNumber(pageNumber - 1)
         messageAll()
     }
-    //メッセージ作成
+    const routerTopPage = () => {
+        setBoardDisplay(false)
+    }
+    /**
+     *メッセージ作成
+     */
     const messageCreate = async () => {
         if (text) {
             try {
@@ -144,7 +157,9 @@ const BoardsPage = () => {
             setResMessages("入力してください")
         }
     };
-
+    /**
+     *ユーザーごとのメッセージ一覧
+     */
     const userMessages = async (uid) => {
         try {
             const response = await fetch(`http://localhost:3030/messages/${uid}/read?${pageNumber}`, {
@@ -170,16 +185,17 @@ const BoardsPage = () => {
             console.error("error", error);
         }
     }
-
+    /**
+     *ユーザー名をクリックした処理
+     */
     const selectMessages = (uMes) => {
         userMessages(uMes.id)
         setUName(uMes.name)
     }
 
-    const routerTopPage = () => {
-        setBoardDisplay(false)
-    }
-
+    /**
+     *boardsを切り替える
+     */
     if (boardDisplay) {
         return (
             <>
@@ -308,7 +324,9 @@ const BoardsPage = () => {
                             <a className="page-link" onClick={pageNext}>next&gt;&gt;</a>
                         </li>
                     </ul>
-
+                    <div className="mt-4">
+                        <a className="text-primary" href="./../users/login">&lt;&lt;ログインページへ</a>
+                    </div>
                 </div>
             </>
         )

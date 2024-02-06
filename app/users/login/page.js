@@ -1,20 +1,27 @@
 "use client";
 
 import React, {useState, useEffect} from "react";
+import {useRouter} from "next/navigation";
+
 
 const LoginPage = () => {
     const [name, setName] = useState('');
     const [pass, setPass] = useState('');
     const [resMessages, setResMessages] = useState("")
-
     const [user, setUser] = useState(null);
+
+    const router = useRouter();
+
+    /**
+     *ログイン中のユーザー確認
+     */
     const fetchUser = async () => {
         try {
-            const response = await fetch("http://localhost:3030/users",{
+            const response = await fetch("http://localhost:3030/users", {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                credentials:"include",
+                credentials: "include",
 
             });
             const data = await response.json();
@@ -30,7 +37,13 @@ const LoginPage = () => {
             console.error('Error fetching user:', error);
         }
     };
+    useEffect(() => {
+        fetchUser()
+    }, []);
 
+    /**
+     *ログイン処理
+     */
     const handleLogin = async () => {
         try {
             const response = await fetch("http://localhost:3030/users/login", {
@@ -38,14 +51,15 @@ const LoginPage = () => {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                credentials:"include",
+                credentials: "include",
                 body: JSON.stringify({name: name, pass: pass}),
             });
 
             if (response.ok) {
                 // ログイン成功
                 console.log("ログイン成功", response)
-                setResMessages("ログイン成功しました")
+                // setResMessages("ログインしました")
+                await router.push("./../../boards")
                 setName("")
                 setPass("")
             } else {
@@ -58,7 +72,19 @@ const LoginPage = () => {
             console.error("error", error);
         }
     };
-
+    /**
+     *トップベージに遷移処理
+     */
+    const routerTopPage = () =>{
+        if(user){
+            router.push("./../boards")
+        }else {
+            setResMessages("ログインしてください")
+        }
+    }
+    /**
+     *ログアウト処理
+     */
     const handleLogout = async () => {
         try {
             const response = await fetch("http://localhost:3030/users/logout", {
@@ -66,11 +92,13 @@ const LoginPage = () => {
                 headers: {
                     "Content-Type": "application/json",
                 },
+                credentials: "include"
             });
 
             if (response.ok) {
                 // ログアウト成功
                 console.log("ログアウトに成功", response)
+                fetchUser()
                 setResMessages("ログアウトに成功しました")
                 setName("")
                 setPass("")
@@ -104,7 +132,16 @@ const LoginPage = () => {
                         <input className="form-control" type="password" value={pass}
                                onChange={(e) => setPass(e.target.value)}/>
                     </div>
-                    <button onClick={handleLogin} className="btn btn-primary" type="button">ログイン</button>
+                    <div className="d-grid gap-2 d-md-block">
+                        <button onClick={handleLogin} className="btn btn-primary m-1" type="button">ログイン</button>
+                        {user?(
+                            <button onClick={handleLogout} className="btn btn-primary m-1"
+                                    type="button">ログアウト
+                            </button>
+                        ):(
+                            <></>
+                        )}
+                    </div>
                 </form>
                 {resMessages ? (
                     <p className="text-danger">{resMessages}</p>
@@ -112,11 +149,9 @@ const LoginPage = () => {
                     <></>
                 )}
                 <div className="mt-4">
+                    <a className="text-primary" onClick={routerTopPage}>&lt;&lt;Topページへ戻る</a>
+                    &nbsp; | &nbsp;
                     <a href="./singnup">新規登録ページへ&gt;&gt;</a>
-
-                </div>
-                <div className="mt-4">
-                    <a href="./../boards">&lt;&lt;Topページへ</a>
                 </div>
             </div>
         </>
