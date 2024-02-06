@@ -2,15 +2,22 @@
 
 import React, {useState, useEffect} from "react";
 import {useRouter} from "next/navigation";
+import {cdate} from "cdate"
 
 
 const BoardsPage = () => {
     const [user, setUser] = useState("")
+    const [uName, setUName] = useState("")
     const [messages, setMessages] = useState()
+    const [nameMessages, setNameMessages] = useState()
     const [pageNumber, setPageNumber] = useState(1)
     const [text, setText] = useState("")
     const [resMessages, setResMessages] = useState("")
+    const [userAll, setUserAll] = useState()
+    const [boardDisplay, setBoardDisplay] = useState(false)
     const router = useRouter();
+
+    //現在ログインしているUser
     const fetchUser = async () => {
         try {
             const response = await fetch("http://localhost:3030/users", {
@@ -33,6 +40,7 @@ const BoardsPage = () => {
         }
     };
 
+    //メッセージ一覧
     const messageAll = async () => {
         try {
             const response = await fetch(`http://localhost:3030/messages/read${pageNumber}`, {
@@ -60,11 +68,38 @@ const BoardsPage = () => {
 
 
     useEffect(() => {
-        fetchUser();
         messageAll();
     }, [pageNumber, resMessages]);
 
+    useEffect(() => {
+        fetchUser();
+    })
 
+    useEffect(() => {
+        const GetUserAll = async () => {
+            try {
+                const response = await fetch(`http://localhost:3030/users/read`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include",
+                });
+                const data = await response.json()
+
+                if (response.ok) {
+                    setUserAll(data.documents)
+                    console.log(data.documents[3])
+                } else {
+                    console.error(data);
+                }
+            } catch (error) {
+                console.error("error", error);
+            }
+        }
+        GetUserAll()
+    }, []);
+
+    //ページ遷移
     const pageNext = () => {
         setPageNumber(pageNumber + 1)
         messageAll()
@@ -74,9 +109,9 @@ const BoardsPage = () => {
         setPageNumber(pageNumber - 1)
         messageAll()
     }
-
+    //メッセージ作成
     const messageCreate = async () => {
-        if(text) {
+        if (text) {
             try {
                 const response = await fetch("http://localhost:3030/messages/create", {
                     method: "POST",
@@ -105,73 +140,179 @@ const BoardsPage = () => {
             } catch (error) {
                 console.error("error", error);
             }
-        }else {
+        } else {
             setResMessages("入力してください")
         }
     };
 
+    const userMessages = async (uid) => {
+        try {
+            const response = await fetch(`http://localhost:3030/messages/${uid}/read?${pageNumber}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                orderBy: [
+                    {createdAt: "desc"}
+                ],
+                credentials: "include",
+            });
+            const data = await response.json()
 
-    return (
-        <>
-            <div className="container">
-                <header>
-                    <h1 className="display-4">Boards</h1>
-                </header>
-                {user ? (
-                    <p className="h4">Welcome to {user}.</p>
-                ) : (
-                    <p className="h4">Loading....</p>
-                )}
-                <form>
-                    <div className="row">
-                        <div className="col-10">
-                            <input className="form-control"
-                                   type="text"
-                                   id="messages"
-                                   placeholder="メッセージ"
-                                   value={text}
-                                   onChange={(e) => setText(e.target.value)}></input>
-                        </div>
-                        <button className="btn btn-primary col-2" type="button" onClick={messageCreate}>送信</button>
-                    </div>
-                </form>
-                {resMessages ? (
-                    <p className="text-danger">{resMessages}</p>
-                ) : (
-                    <></>
-                )}
+            if (response.ok) {
+                console.log(data.messages)
+                setNameMessages(data.messages)
+                setBoardDisplay(true)
+            } else {
+                console.error(data);
+            }
+        } catch (error) {
+            console.error("error", error);
+        }
+    }
 
-                <div>
-                    {messages ? (
-                        <table className="table mt-5">
-                            <tbody>
-                            {messages.map((val, i) =>
-                                <tr className="row" key={i}>
-                                    <td className="col-9">{val.text}</td>
-                                    <td className="col-3">{val.createdAt}</td>
-                                </tr>
-                            )}
-                            </tbody>
-                        </table>
+    const selectMessages = (uMes) => {
+        userMessages(uMes.id)
+        setUName(uMes.name)
+    }
 
+    const routerTopPage = () => {
+        setBoardDisplay(false)
+    }
+
+    if (boardDisplay) {
+        return (
+            <>
+                <div className="container">
+                    <header>
+                        <h1 className="display-4">Boards</h1>
+                    </header>
+
+                    {uName ? (
+                        <p className="h4">{uName}'s messages</p>
                     ) : (
                         <p className="h4">Loading....</p>
                     )}
+
+                    {resMessages ? (
+                        <p className="text-danger">{resMessages}</p>
+                    ) : (
+                        <></>
+                    )}
+                    <div>
+                        {nameMessages ? (
+                            <table className="table mt-5">
+                                <tbody className="">
+                                {nameMessages.map((val, i) =>
+                                    <tr className="row align-items-center mx-auto" key={i}>
+                                        <td className="col-2">
+                                            <div className="text-dark">
+                                                {userAll ? (
+                                                    <a onClick={() => userMessages(userAll.find(u => u.id === val.accountId).id)}>
+                                                        {userAll.find(u => u.id === val.accountId).name}
+                                                    </a>
+                                                ) : (<></>)}
+                                            </div>
+                                        </td>
+                                        <td className="col-7">{val.text}</td>
+                                        <td className="col-3">{cdate(val.createdAt).format("YYYY-MM-DD HH:mm:ss")}</td>
+                                    </tr>
+                                )}
+                                </tbody>
+                            </table>
+
+                        ) : (
+                            <p className="h4">Loading....</p>
+                        )}
+                    </div>
+                    <ul className="pagination justify-content-center">
+                        <li className="page-item">
+                            <a className="page-link" onClick={pagePrev}>&lt;&lt;prev</a>
+                        </li>
+
+                        <li className="page-item">
+                            <a className="page-link" onClick={pageNext}>next&gt;&gt;</a>
+                        </li>
+                    </ul>
+                    <div className="mt-4">
+                        <a className="text-primary" onClick={routerTopPage}>&lt;&lt;Topページへ</a>
+                    </div>
                 </div>
-                <ul className="pagination justify-content-center">
-                    <li className="page-item">
-                        <a className="page-link" onClick={pagePrev}>&lt;&lt;prev</a>
-                    </li>
+            </>
+        )
+    } else {
+        return (
+            <>
+                <div className="container">
+                    <header>
+                        <h1 className="display-4">Boards</h1>
+                    </header>
 
-                    <li className="page-item">
-                        <a className="page-link" onClick={pageNext}>next&gt;&gt;</a>
-                    </li>
+                    {user ? (
+                        <p className="h4">Welcome to {user}.</p>
+                    ) : (
+                        <p className="h4">Loading....</p>
+                    )}
+                    <form>
+                        <div className="row">
+                            <div className="col-10">
+                                <input className="form-control"
+                                       type="text"
+                                       id="messages"
+                                       placeholder="メッセージ"
+                                       value={text}
+                                       onChange={(e) => setText(e.target.value)}></input>
+                            </div>
+                            <button className="btn btn-primary col-2" type="button" onClick={messageCreate}>送信
+                            </button>
+                        </div>
+                    </form>
+                    {resMessages ? (
+                        <p className="text-danger">{resMessages}</p>
+                    ) : (
+                        <></>
+                    )}
 
-                </ul>
+                    <div>
+                        {messages ? (
+                            <table className="table mt-5">
+                                <tbody className="">
+                                {messages.map((val, i) =>
+                                    <tr className="row align-items-center mx-auto" key={i}>
+                                        <td className="col-2">
+                                            <div className="text-dark">
+                                                {userAll ? (
+                                                    <a onClick={() => selectMessages(userAll.find(u => u.id === val.accountId))}>
+                                                        {userAll.find(u => u.id === val.accountId).name}
+                                                    </a>
+                                                ) : (<></>)}
+                                            </div>
+                                        </td>
+                                        <td className="col-7">{val.text}</td>
+                                        <td className="col-3">{cdate(val.createdAt).format("YYYY-MM-DD HH:mm:ss")}</td>
+                                    </tr>
+                                )}
+                                </tbody>
+                            </table>
 
-            </div>
-        </>
-    )
+                        ) : (
+                            <p className="h4">Loading....</p>
+                        )}
+                    </div>
+                    <ul className="pagination justify-content-center">
+                        <li className="page-item">
+                            <a className="page-link" onClick={pagePrev}>&lt;&lt;prev</a>
+                        </li>
+
+                        <li className="page-item">
+                            <a className="page-link" onClick={pageNext}>next&gt;&gt;</a>
+                        </li>
+                    </ul>
+
+                </div>
+            </>
+        )
+    }
 
 };
 
