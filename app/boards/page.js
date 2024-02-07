@@ -140,7 +140,7 @@ const BoardsPage = () => {
                 if (response.ok) {
                     console.log("送信完了:", data);
                     setText("")
-                    setResMessages(data.message)
+                    setResMessages("メッセージをを送信しました")
                     await messageAll()
                 } else {
                     console.error("送信失敗", data.message);

@@ -11,7 +11,6 @@ const SingUpPage = () => {
     /**
      *新規登録処理
      */
-
     const handleSignup = async () => {
         try {
             const response = await fetch("http://localhost:3030/users/signup", {
