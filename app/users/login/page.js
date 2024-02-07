@@ -58,14 +58,13 @@ const LoginPage = () => {
             if (response.ok) {
                 // ログイン成功
                 console.log("ログイン成功", response)
-                // setResMessages("ログインしました")
                 await router.push("./../../boards")
                 setName("")
                 setPass("")
             } else {
                 // ログイン失敗
-                console.error("ログイン失敗", response);
-                setResMessages("ログイン失敗しました")
+                console.error(response.statusText);
+                setResMessages("パスワードかユーザー名が違います")
                 setPass("")
             }
         } catch (error) {

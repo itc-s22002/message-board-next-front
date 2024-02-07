@@ -7,9 +7,9 @@ import {cdate} from "cdate"
 
 const BoardsPage = () => {
     const [user, setUser] = useState("")
-    const [uName, setUName] = useState("")
     const [messages, setMessages] = useState()
-    const [nameMessages, setNameMessages] = useState()
+    const [nameMessages, setUserMessages] = useState()
+    const [userName, setUserName] = useState("aaaa")
     const [pageNumber, setPageNumber] = useState(1)
     const [text, setText] = useState("")
     const [resMessages, setResMessages] = useState("")
@@ -62,7 +62,7 @@ const BoardsPage = () => {
 
             if (response.ok) {
                 setMessages(data.documents)
-                console.log(data.documents)
+                console.log(data)
             } else {
                 console.error(data);
             }
@@ -138,13 +138,13 @@ const BoardsPage = () => {
                 const data = await response.json();
 
                 if (response.ok) {
-                    console.log("送信完了:", data.message);
+                    console.log("送信完了:", data);
                     setText("")
-                    setResMessages("送信完了")
+                    setResMessages(data.message)
                     await messageAll()
                 } else {
                     console.error("送信失敗", data.message);
-                    setResMessages("送信失敗")
+                    setResMessages(data.message)
                     setText("")
                     await messageAll()
 
@@ -175,8 +175,9 @@ const BoardsPage = () => {
             const data = await response.json()
 
             if (response.ok) {
-                console.log(data.messages)
-                setNameMessages(data.messages)
+                console.log(data.user[0].name)
+                setUserMessages(data)
+                setUserName(data.user[0].name)
                 setBoardDisplay(true)
             } else {
                 console.error(data);
@@ -190,7 +191,6 @@ const BoardsPage = () => {
      */
     const selectMessages = (uMes) => {
         userMessages(uMes.id)
-        setUName(uMes.name)
     }
 
     /**
@@ -204,8 +204,8 @@ const BoardsPage = () => {
                         <h1 className="display-4">Boards</h1>
                     </header>
 
-                    {uName ? (
-                        <p className="h4">{uName}'s messages</p>
+                    {userName ? (
+                        <p className="h4">{userName}'s messages</p>
                     ) : (
                         <p className="h4">Loading....</p>
                     )}
@@ -219,13 +219,13 @@ const BoardsPage = () => {
                         {nameMessages ? (
                             <table className="table mt-5">
                                 <tbody className="">
-                                {nameMessages.map((val, i) =>
+                                {nameMessages.messages.map((val, i) =>
                                     <tr className="row align-items-center mx-auto" key={i}>
                                         <td className="col-2">
                                             <div className="text-dark">
-                                                {userAll ? (
-                                                    <a onClick={() => userMessages(userAll.find(u => u.id === val.accountId).id)}>
-                                                        {userAll.find(u => u.id === val.accountId).name}
+                                                {userName ? (
+                                                    <a>
+                                                        {userName}
                                                     </a>
                                                 ) : (<></>)}
                                             </div>
